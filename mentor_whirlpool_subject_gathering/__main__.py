@@ -18,6 +18,7 @@ async def flush_queue():
     file = open('botlog.txt', 'a')
     while (running):
         file.write(await queue.get() + '\n')
+        file.flush()
     file.close()
 
 
