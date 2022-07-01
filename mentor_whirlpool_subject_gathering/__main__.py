@@ -1,4 +1,4 @@
-from asyncio import run, create_task, Queue
+from asyncio import run, gather, Queue
 from telebot.async_telebot import AsyncTeleBot
 from os import environ as env, path
 from random import choice
@@ -30,16 +30,13 @@ async def start(message):
 
 @bot.message_handler(func=lambda _: True)
 async def any_message(message):
-    await queue.put(message.from_user.username + ': ' + message.text)
-    await bot.send_message(message.from_user.id, choice(encouragements))
+    await gather(queue.put(message.from_user.username + ': ' + message.text),
+                 bot.send_message(message.from_user.id, choice(encouragements)))
 
 
 async def main():
-    flusher = create_task(flush_queue())
-    while (running):
-        await bot.polling()
-    print('stopped polling')
-    await flusher
+    await gather(flush_queue(),
+                 bot.infinity_polling())
 
 if __name__ == '__main__':
     run(main())
